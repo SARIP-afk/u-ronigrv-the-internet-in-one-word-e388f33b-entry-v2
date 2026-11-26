@@ -17,7 +17,7 @@
 // not a joke. Full comparison:
 // u-ronigrv-the-internet-in-one-word-e388f33b-v2-candidates.md.
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const WORD = "RabbitHole";
@@ -37,4 +37,12 @@ if (
 
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, "entry.txt"), WORD, { encoding: "utf-8" });
+const outPath = join(outDir, "entry.txt");
+writeFileSync(outPath, WORD, { encoding: "utf-8" });
+
+// Verify the write round-trips byte for byte: the gate scores exactly
+// what is on disk, so a silent short write must fail loudly here rather
+// than ship a truncated or altered word.
+if (readFileSync(outPath, { encoding: "utf-8" }) !== WORD) {
+  throw new Error(`entry.txt round-trip mismatch: expected ${JSON.stringify(WORD)}`);
+}
